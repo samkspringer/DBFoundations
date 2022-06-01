@@ -164,7 +164,6 @@ go
 
 /********************************* Questions and Answers *********************************/
 print 
-go
 'NOTES------------------------------------------------------------------------------------ 
  1) You can use any name you like for your views, but be descriptive and consistent
  2) You can use your working code from assignment 5 for much of this assignment
@@ -186,50 +185,51 @@ AS
 	FROM Categories;
 GO
 */
-CREATE OR ALTER VIEW vBasicCategories
+go
+CREATE OR ALTER VIEW vCategories
 WITH SCHEMABINDING
 AS
 	SELECT CategoryID, CategoryName 
 	FROM dbo.Categories;
 GO
-CREATE OR ALTER VIEW vBasicProducts
+CREATE OR ALTER VIEW vProducts
 WITH SCHEMABINDING
 AS
 	SELECT ProductID, ProductName, CategoryID UnitPrice
 	FROM dbo.Products;
 GO
-CREATE OR ALTER VIEW vBasicEmployees
+CREATE OR ALTER VIEW vEmployees
 WITH SCHEMABINDING
 AS
 	SELECT EmployeeID, [Employee Name] = EmployeeFirstName + ' ' + EmployeeLastName, ManagerID
 	FROM dbo.Employees;
 GO
-CREATE OR ALTER VIEW vBasicInventories
+CREATE OR ALTER VIEW vInventories
 WITH SCHEMABINDING
 AS
 	SELECT InventoryID, InventoryDate, EmployeeID, Count
 	FROM dbo.Inventories;
 GO
 
-SELECT * FROM vBasicCategories
-SELECT * FROM vBasicProducts
-SELECT * FROM vBasicEmployees
-SELECT * FROM vBasicInventories
+SELECT * FROM vCategories
+SELECT * FROM vProducts
+SELECT * FROM vEmployees
+SELECT * FROM vInventories
 GO
 
 
 -- Question 2 (5% pts): How can you set permissions, so that the public group CANNOT select data 
 -- from each table, but can select data from each view?
 USE Assignment06DB_SSpringer
-DENY SELECT ON Categories TO PUBLIC
-DENY SELECT ON Products TO PUBLIC
-DENY SELECT ON Employees TO PUBLIC
-DENY SELECT ON Inventories TO PUBLIC;
+DENY SELECT ON vCategories TO PUBLIC
+DENY SELECT ON vProducts TO PUBLIC
+DENY SELECT ON vEmployees TO PUBLIC
+DENY SELECT ON vInventories TO PUBLIC;
 GO
-GRANT SELECT ON vBasicCategories TO PUBLIC
-GRANT SELECT ON vBasicProducts TO PUBLIC
-GRANT SELECT ON vBasicEmployees TO PUBLIC
-GRANT SELECT ON vBasicInventories TO PUBLIC;
+GRANT SELECT ON vCategories TO PUBLIC
+GRANT SELECT ON vProducts TO PUBLIC
+GRANT SELECT ON vEmployees TO PUBLIC
+GRANT SELECT ON vInventories TO PUBLIC;
 GO
 
 -- Question 3 (10% pts): How can you create a view to show a list of Category and Product names, 
@@ -253,7 +253,7 @@ SELECT	[Category] = CategoryName
 	;
 GO
 */
-CREATE VIEW vProductCategories
+CREATE or ALTER VIEW vProductsByCategories
 AS
 	SELECT TOP 100000	
 			[Category] = CategoryName 
@@ -265,7 +265,7 @@ AS
 		ORDER BY Category, Product
 		;
 	GO
-SELECT * FROM vProductCategories;
+SELECT * FROM vProductsByCategories;
 GO
 -- Question 4 (10% pts): How can you create a view to show a list of Product names 
 -- and Inventory Counts on each Inventory Date?
@@ -289,7 +289,7 @@ SELECT	ProductName
 	;
 GO
 */
-CREATE VIEW vProductInventories
+CREATE VIEW vInventoriesByProductsByDates
 AS
 SELECT	ProductName
 		,InventoryDate
@@ -299,7 +299,7 @@ SELECT	ProductName
 	ON p.ProductID = i.ProductID
 	;
 GO
-SELECT * FROM vProductInventories
+SELECT * FROM vInventoriesByProductsByDates
 	ORDER BY ProductName, InventoryDate, Count
 GO
 -- Question 5 (10% pts): How can you create a view to show a list of Inventory Dates 
@@ -322,7 +322,8 @@ SELECT DISTINCT InventoryDate
 	;
 GO
 */
-CREATE Or ALTER VIEW vEmployeeInventoriesByDate
+
+CREATE Or ALTER VIEW vInventoriesByEmployeesByDates
 AS
 SELECT TOP 1000000 InventoryDate
 		, [Employee] = (EmployeeFirstName) + ' ' + (EmployeeLastName)
@@ -332,7 +333,7 @@ SELECT TOP 1000000 InventoryDate
 	ORDER BY InventoryDate
 	;
 GO
-SELECT DISTINCT * FROM vEmployeeInventoriesByDate;
+SELECT DISTINCT * FROM vInventoriesByEmployeesByDates;
 GO
 -- Question 6 (10% pts): How can you create a view show a list of Categories, Products, 
 -- and the Inventory Date and Count of each product?
@@ -360,7 +361,8 @@ SELECT CategoryName
 	ORDER BY CategoryName, ProductName, InventoryDate, Count;
 GO
 */
-CREATE Or ALTER VIEW vProductCategoriesandInventoriesByDateWithCount
+CREATE Or ALTER VIEW vInventoriesByProductsByCategories
+
 AS
 SELECT TOP 100000 CategoryName
 		,ProductName
@@ -373,7 +375,7 @@ SELECT TOP 100000 CategoryName
 		ON p.ProductID = i.ProductID
 	ORDER BY CategoryName, ProductName, InventoryDate, Count;
 GO
-SELECT * FROM vProductCategoriesandInventoriesByDateWithCount;
+SELECT * FROM vInventoriesByProductsByCategories;
 GO
 
 -- Question 7 (10% pts): How can you create a view to show a list of Categories, Products, 
@@ -406,7 +408,7 @@ SELECT CategoryName
 	;
 GO
 */
-CREATE VIEW vProductInventoriesWithCountByEmployeeAndDate
+CREATE VIEW vInventoriesByProductsByEmployees
 AS
 SELECT TOP 1000000 CategoryName
 		,ProductName
@@ -423,7 +425,7 @@ SELECT TOP 1000000 CategoryName
 	ORDER BY InventoryDate, CategoryName, ProductName, Employee
 	;
 GO
-SELECT * FROM vProductInventoriesWithCountByEmployeeAndDate;
+SELECT * FROM vInventoriesByProductsByEmployees;
 GO
 -- Question 8 (10% pts): How can you create a view to show a list of Categories, Products, 
 -- the Inventory Date and Count of each product, and the Employee who took the count
@@ -456,7 +458,7 @@ SELECT CategoryName
 	;
 GO
 */
-CREATE VIEW vInventoriesForChaiAndChangByEmployee
+CREATE VIEW vInventoriesForChaiAndChangByEmployees
 AS
 SELECT TOP 1000000 CategoryName
 		,ProductName
@@ -474,9 +476,8 @@ SELECT TOP 1000000 CategoryName
 	ORDER BY InventoryDate, CategoryName, ProductName, Employee
 	;
 GO
-SELECT * FROM vInventoriesForChaiAndChangByEmployee;
+SELECT * FROM vInventoriesForChaiAndChangByEmployees;
 GO
-
 
 -- Question 9 (10% pts): How can you create a view to show a list of Employees and the Manager who manages them?
 -- Order the results by the Manager's name!
@@ -502,7 +503,8 @@ SELECT [Manager] = m.EmployeeFirstName + ' ' + m.EmployeeLastName
 	;
 GO
 */
-CREATE VIEW vEmployeesByManager
+
+CREATE or Alter VIEW vEmployeesByManager
 AS
 SELECT TOP 1000000 [Manager] = m.EmployeeFirstName + ' ' + m.EmployeeLastName
 		,[Employee] = e.EmployeeFirstName + ' ' + e.EmployeeLastName
@@ -580,7 +582,7 @@ SELECT TOP 1000000 c.CategoryID
 GO
 */
 --Code to create view for above with column for managers
-CREATE OR ALTER VIEW vCombinedCategoriesProductsInventoriesAndEmployees
+CREATE OR ALTER VIEW vInventoriesByProductsByCategoriesByEmployees
 AS
 SELECT TOP 1000000 c.CategoryID
 		,CategoryName
@@ -605,7 +607,7 @@ SELECT TOP 1000000 c.CategoryID
 		ORDER BY CategoryName, ProductName, InventoryID, EmployeeName
 	;
 GO
-SELECT * FROM vCombinedCategoriesProductsInventoriesAndEmployees;
+SELECT * FROM vInventoriesByProductsByCategoriesByEmployees;
 GO
 
 -- Test your Views (NOTE: You must change the names to match yours as needed!)
